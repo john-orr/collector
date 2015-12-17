@@ -9,6 +9,6 @@ This is the NodeJS program running on the data gathering machines
 	<li>Opens file</li>
 	<li>Parses file data</li>
 	<li>Packages data as a json doc</li>
-	<li>Sends data to central server (legendary-chainsaw)</li>
+	<li>Sends data to central server</li>
 	<li>Constantly running</li>
 </ul>
