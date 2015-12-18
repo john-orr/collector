@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/john-orr/collector#readme",
   "dependencies": {
+    "fs": "0.0.2",
     "require": "^2.4.20"
   }
 }
