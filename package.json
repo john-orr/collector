@@ -4,7 +4,8 @@
   "description": "This application will collect thermometer data, parse it and send to central server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+	"start": "node index.js"  
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,7 @@
   "homepage": "https://github.com/john-orr/collector#readme",
   "dependencies": {
     "fs": "0.0.2",
+    "request": "^2.67.0",
     "require": "^2.4.20"
   }
 }
