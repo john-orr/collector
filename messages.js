@@ -50,7 +50,7 @@ function DeviceMessagesModule() {
 
   this.InitRequest = function() {
     this.getMessage = function() {
-      return new Buffer("CC000A00D6","hex");
+      return new Buffer("CC000A00","hex");
     };
   };
 
@@ -63,7 +63,7 @@ function DeviceMessagesModule() {
 
   this.DeviceInfoRequest = function() {
     this.getMessage = function() {
-      return new Buffer("CC000600D2","hex");
+      return new Buffer("CC000600","hex");
     };
   };
 
