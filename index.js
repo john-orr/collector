@@ -6,19 +6,19 @@ var array = [];
 var mostRecentNum = 0;
 var num;
 var dir = 'C:/elitech-datareader-0.9.1/build/scripts-2.7';
+var location =  process.argv[2];
 
 fs.watch(dir, function (event, filename) {
     console.log('Detecting ' + event + ' event for file: ' + filename);
-    if (filename) {        
-        array = fs.readFileSync(dir + "/" + filename).toString().split("\n");
+    if (filename) {
+		array = fs.readFileSync(dir + "/" + filename).toString().split("\n");
         
-        for(i in array) {
+        for (i in array) {
 
-            if(array[i] !=="" && array[i] !==" " && array[i] !== null){
+            if (array[i] !=="" && array[i] !==" " && array[i] !== null) {
                 var subarray = array[i].split("\t");
                 num =  parseInt(subarray[0]);
-                if(mostRecentNum < num){
-                    var location =  process.argv[2];
+                if (mostRecentNum < num) {
                     var time = subarray[1].replace(" ", "T");
                     var temp = subarray[2].substring(0, subarray[2].length-1);
 
@@ -38,11 +38,11 @@ fs.watch(dir, function (event, filename) {
             request(options, function (error, response, body) {
                 if (!error && response.statusCode == 200) {
                     console.log("Response: " + body);
-                }
-                else if(response.statusCode == 400){
+					
+                } else if(response.statusCode == 400) {
                     console.log("Bad request");
-                }
-                else {
+					
+                } else {
                     console.log(error);
                 }
             });
