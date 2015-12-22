@@ -2,6 +2,8 @@ var Parser = require('binary-parser').Parser;
 
 function DeviceMessagesModule() {
 
+
+
   var bin2String = function(array) {
     var out, i, len, c;
     var char2, char3;
@@ -40,12 +42,13 @@ function DeviceMessagesModule() {
 
   var interval_unpack = function(data) {
     var fields = new Parser().endianess('big').uint8('hour').uint8('min').uint8('sec').parse(new Buffer(data, 'ascii'));
-    return new Date(0,0,0,fields.hour,fields.min, fields.sec,0);
+    return (fields.hour*60*60 + fields.min*60 + fields.sec)*1000;
+    // return new Date(0,0,0,fields.hour,fields.min, fields.sec,0).toISOString();
   };
 
   var datetime_unpack = function(data) {
     var date = new Parser().endianess('big').uint16('year').uint8('month').uint8('day').uint8('hour').uint8('min').uint8('sec').parse(new Buffer(data,'ascii'));
-    return new Date(date.year, date.month-1, date.day, date.hour, date.min, date.sec, 0);
+    return new Date(date.year, date.month-1, date.day, date.hour, date.min, date.sec, 0).toISOString();
   };
 
   this.InitRequest = function() {
@@ -55,8 +58,12 @@ function DeviceMessagesModule() {
   };
 
   this.InitResponse = function() {
+    this.buffer_length = function() {
+      return 3;
+    };
+
     this.readData = function(data){
-        //do nothing
+        return this;
     };
   };
 
@@ -86,7 +93,20 @@ function DeviceMessagesModule() {
     this.temp_unit = '';
     this.temp_calibration = '';
 
+    this.buffer_length = function() {
+      return 160;
+    };
+
+    var bytes_received = 0;
+    var read_buffer = new Buffer(160);
+
     this.readData = function(data) {
+
+      if(data.length != this.buffer_length()) {
+        return false;
+      }
+
+
       console.log(data);
       console.log("Buffer lenght: " + data.length);
           /*
@@ -137,7 +157,6 @@ function DeviceMessagesModule() {
                       .uint8('temp_calibration')
                       .array('reserved3', { type: 'uint8', length: 7 }).parse(data);
 
-
       this.station_no = fields.station_no;
       this.rec_interval = interval_unpack(fields.rec_interval);
       this.upper_limit = fields.upper_limit / 10.0;
@@ -169,17 +188,22 @@ function DeviceMessagesModule() {
       "b"     # command: datahead 0x01
       "b",    # page number 0x00
       */
-      var buff = new Buffer();
-      buff.writeUInt8(0x33);
-      buff.writeUInt8(this.target_station_no);
-      buff.writeUInt8(0x01);
-      buff.writeUInt8(0x00);
+      var buff = new Buffer(4);
+      buff.writeUInt8(0x33, 0);
+      buff.writeUInt8(this.target_station_no,1);
+      buff.writeUInt8(0x01,2);
+      buff.writeUInt8(0x00,3);
+      return buff;
     };
   };
 
   this.DataHeaderResponse = function() {
     this.rec_count = 0;
-    this.start_time = false;
+    this.current_time = false;
+
+    this.buffer_length = function() {
+      return 11;
+    };
 
     this.readData = function(data) {
         /*
@@ -212,11 +236,11 @@ function DeviceMessagesModule() {
       "b"     # command databody 0x02
       "b",    # page number
       */
-      var buff = new Buffer();
-      buff.writeUInt8(0x33);
-      buff.writeInt8(this.target_station_no);
-      buff.writeInt8(0x02);
-      buff.writeInt8(this.page_num);
+      var buff = new Buffer(4);
+      buff.writeInt8(0x33,0);
+      buff.writeInt8(this.target_station_no,1);
+      buff.writeInt8(0x02,2);
+      buff.writeInt8(this.page_num,3);
       return buff;
     };
   };
@@ -226,12 +250,17 @@ function DeviceMessagesModule() {
     this.records = [];
     this.start_time = false;
 
+    this.buffer_length = function() {
+      return 1+2*this.count+1;
+    };
+
     this.readData = function(data) {
       console.log("Reading " + this.count + " measurements from data. Size: " + data.length);
-      var fields = new Parser().endianess('big').uint8('headerByte').array('records', {type:'int16be',length: this.count}).parse(data);
-      for(i=0;i<this.count;i++) {
-        this.records[i] = fields.records[i] / 10.0;
-      }
+      var fields = new Parser().endianess('big').uint8('headerByte').array('records', {type:'int16be',length: this.count}).uint8('checksum').parse(data);
+      this.records = fields.records;
+      // for(i=0;i<this.count;i++) {
+      //   this.records[i] = fields.records[i] / 10.0;
+      // }
       return this;
     };
   };

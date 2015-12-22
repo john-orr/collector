@@ -1,25 +1,16 @@
 {
-  "name": "collector",
-  "version": "1.0.0",
+  "name": "nodejs-collector",
+  "version": "1.0.0-SNAPSHOT",
   "description": "This application will collect thermometer data, parse it and send to central server",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-	"start": "node index.js"  
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/john-orr/collector.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/john-orr/collector/issues"
-  },
-  "homepage": "https://github.com/john-orr/collector#readme",
+  "main": "./cli/nodejs-collector.js",
   "dependencies": {
+    "elitech-reader": "1.0.0",
     "fs": "0.0.2",
     "request": "^2.67.0",
-    "require": "^2.4.20"
+    "require": "^2.4.20",
+    "underscore": "^1.8.3"
+  },
+  "bin": {
+    "nodejs-collector": "./cli/nodejs-collector.js"
   }
 }
