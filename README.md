@@ -28,3 +28,6 @@ Please feel free to get our code and improve it. You are welcome to be a contrib
 ```
 git clone https://github.com/john-orr/collector.git
 ```
+
+# Finally
+Cheers
