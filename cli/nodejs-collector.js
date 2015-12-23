@@ -4,10 +4,22 @@ var underscore = require('underscore');
 var request = require('request');
 var sleep = require("sleep");
 var fs = require('fs');
+var getopt = require("node-getopt");
+
 
 process.on('uncaughtException', function(err) {
     console.error(err);
 });
+
+var opt = getopt.create([
+	["p", "port=<port>", "COM port (eg.: /dev/cu.SLAB_USBtoUART)"],
+	// ["c", "command=<command>", "command (eg. data, devices)"],
+	["h", "help", "display this help"]
+]);
+
+
+var args_command = opt.parseSystem().options;
+
 
 var device_info = false;
 
@@ -17,7 +29,6 @@ function getConfigFile() {
 function read_last_date() {
   try {
     var obj = JSON.parse(fs.readFileSync(getConfigFile(), 'utf8'));
-      // console.log(obj.lastUpdate);
       return obj.lastUpdate;
     }catch(error) {
       return false;
@@ -40,10 +51,41 @@ var last_timestamp = read_last_date();
 // console.log(last_timestamp);
 // process.exit(0);
 
+function send_data_to_server(data) {
 
+  var pageSize = 1000;
+
+  var page = 1;
+  while(data.length > 0) {
+    var data_to_send = data.splice(0,pageSize);
+    console.log(`Uploading page ${page} with ${data_to_send.length} measurements.`);
+    page++;
+
+    request.post({url: 'http://mca-central.herokuapp.com/temperatureData',
+      method: "POST",
+      json: true,
+      headers: {
+          "content-type": "application/json",
+      }, body: data_to_send}, function(err,httpResponse,body){
+        if(err) {
+          console.error('Error uploading data to server: ' + err);
+          console.error("Respose: " + httpResponse);
+          console.error("Body: " + body);
+        } else {
+          console.log("Upload successful");
+        }
+    });
+  }
+}
 
 function proccess_data_acquisition(data) {
-  console.log(" Readed " + data.length);
+  if(data.length < 1) {
+    console.log("No data available.");
+    return;
+  }
+
+  console.log("Data available: " + data.length);
+
   var record = underscore.max(data, record => new Date(record.time).getTime());
 
   last_timestamp = record.time;
@@ -60,22 +102,9 @@ function proccess_data_acquisition(data) {
     });
   }
 
-// console.log(JSON.stringify(data_to_send));
-  console.log(JSON.stringify(last_timestamp));
-
-  request.post({url: 'http://mca-central.herokuapp.com/temperatureData',
-    method: "POST",
-    json: true,
-    headers: {
-        "content-type": "application/json",
-    }, body: data_to_send}, function(err,httpResponse,body){
-      console.log("Err: " + err);
-      console.log("Respose: " + httpResponse);
-      console.log("Body: " + body);
-  });
+  // send_data_to_server(data_to_send);
 
 }
-
 
 function store_device_info(info) {
   // console.log(info);
@@ -88,22 +117,30 @@ function store_device_info(info) {
   }
 }
 
+function start_measurement(port) {
+  console.log("Starting device on port " + port)
+  var device = elitech.getDevice(port);
+  device.open()
+      .then(() => device.getDeviceInfo(), error=>{console.error(error);})
+      .then(info => store_device_info(info), error=>{console.error(error);})
+      .then(() => device.getData(last_timestamp), error=>{console.error(error);})
+      .then(result => {proccess_data_acquisition(result)}, error => {console.error(error)})
+      .then(() => device.close(function(err) {console.log(err)}))
+      .then(() => setTimeout(systemMeasurement, 10000));
+}
+
 function systemMeasurement() {
-  elitech.getElitechReader()
-    .then(port => {
-      console.log("Starting device on port " + port.comName)
-      var device = elitech.getDevice(port.comName);
-      device.open()
-          .then(() => device.getDeviceInfo())
-          .then(info => store_device_info(info))
-          .then(() => device.getData(last_timestamp))
-          .then(result => {proccess_data_acquisition(result)}, error => {console.error(error)})
-          .then(() => device.close(function(err) {console.log(err)}))
-          .then(() => setTimeout(systemMeasurement, 10000));
-  }, error => {
-    console.error(error);
-    process.exit(1);
-  });
+  if(args_command.port) {
+    start_measurement(args_command.port);
+  } else {
+    elitech.getElitechReader()
+      .then(port => {
+        start_measurement(port.comName);
+    }, error => {
+      console.error(error);
+      process.exit(1);
+    });
+  };
 };
 
 

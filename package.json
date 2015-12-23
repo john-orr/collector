@@ -1,11 +1,40 @@
 {
   "name": "nodejs-collector",
-  "version": "1.0.0-SNAPSHOT",
-  "description": "This application will collect thermometer data, parse it and send to central server",
+  "version": "1.0.2-SNAPSHOT",
+  "description": "This application will collect thermometer data, parse it and send to central server. It uses nodejs elitech-reader (RC-4) library.",
+  "license": "ISC",
+  "keywords": ["elitech","RC4","RC-4","data logger", "datalogger", "temperature", "sensor"],
   "main": "./cli/nodejs-collector.js",
+  "bugs": { "url" : "https://github.com/john-orr/collector/issues" },
+	"repository" :
+  	{
+				"type" : "git"
+		  , "url" : "https://github.com/john-orr/collector.git"
+		},
+	"contributors": [
+		{
+			 "name" : "Juan Hernández "
+			, "email" : "juanhernandezgomez@gmail.com"
+			, "url" : "http://sidneibasei.tumblr.com/"
+		},
+			{
+				 "name" : "Sidnei Basei"
+				, "email" : "sidnei.basei@bearingpoint.com"
+				, "url" : "http://sidneibasei.tumblr.com/"
+			},
+			{
+				 "name" : "David Devane"
+				, "email" : "david.devane@bearingpoint.com"
+			},
+      {
+  			 "name" : "John Orr"
+  			, "email" : "john.orr@bearingpoint.com"
+  		}
+	],
   "dependencies": {
-    "elitech-reader": "1.0.0",
+    "elitech-reader": ">=1.0.1",
     "fs": "0.0.2",
+    "node-getopt": "^0.2.3",
     "request": "^2.67.0",
     "require": "^2.4.20",
     "underscore": "^1.8.3"
